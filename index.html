@@ -30,6 +30,7 @@
             </div>
             <div id="editor" class="editor">
             </div>
+            <button name="submit" value="submit" id="saveButton">Save</button>
         </div>
     </div>
     <div class="flex-item">
@@ -65,15 +66,13 @@ function httpGet(theUrl) {
     return xmlHttp.responseText;
 }
 
+var editor = new Quill('#editor', {theme: 'snow'});
+editor.addModule('toolbar', { container: '#toolbar' });
+
 function pageLoader(fileFoler, page) {
     //create text and pdf location based on the defined structure
     var textLocation = "data/{0}/text/{1}.txt".format(fileFoler, page);
     var pdfLocation = "data/{0}/pages/{1}.pdf".format(fileFoler, page);
-    var configs = {
-        theme: 'snow'
-    };
-    var editor = new Quill('#editor', configs);
-    editor.addModule('toolbar', { container: '#toolbar' });
     editor.setHTML(httpGet(textLocation));
     
     PDFJS.getDocument(pdfLocation).then(function(pdf) {
@@ -102,6 +101,10 @@ $('#pagelist a').click(function() {
     pageLoader(fileFoler, page);    
 });
 
+$('#saveButton').click(function() {
+    var htmlContent = editor.getHTML();
+    console.log(htmlContent);
+})
 //if loaded for the first time, load page 1
 pageLoader(fileFoler,1);
 </script>
