@@ -1,0 +1,107 @@
+<head>
+    <link rel="stylesheet" href="quill/quill.snow.css" />
+    <link rel="stylesheet" href="style.css" />
+    <style>
+    .container{
+        display: flex;
+    }
+    .fixed{
+        width: 500px;
+    }
+    .flex-item{
+        flex-grow: 1;
+        }
+    </style>
+    <script src="quill/quill.js"></script>
+    <script src="jquery-1.11.3.js"></script>
+    <script src="pdfjs/pdf.js"></script>
+</head>
+
+<div id="pagelist">
+</div>
+<div class="container">
+
+    <div class="fixed">
+        <div class="quill-wrapper">
+            <!-- Create the toolbar container -->
+            <div id="toolbar">
+                <button class="ql-bold">Bold</button>
+                <button class="ql-italic">Italic</button>
+            </div>
+            <div id="editor" class="editor">
+            </div>
+        </div>
+    </div>
+    <div class="flex-item">
+        <canvas id="the-canvas" style="border:1px solid black;" />
+    </div>
+</div>
+<!-- Initialize Quill editor -->
+<script>
+//defining format to use .format function
+String.prototype.format = function() {
+    var formatted = this;
+    for (var i = 0; i < arguments.length; i++) {
+        var regexp = new RegExp('\\{'+i+'\\}', 'gi');
+        formatted = formatted.replace(regexp, arguments[i]);
+    }
+    return formatted;
+};
+
+var totalPages = 21;
+var filename = "in";
+
+//fill the page numbers
+for (var index = 1; index <= totalPages; ++index) {
+    $('#pagelist').append('<a href="#{0}">{0}</a>&nbsp;'.format(index));
+}
+
+//read the url content
+function httpGet(theUrl) {
+    var xmlHttp = null;
+    xmlHttp = new XMLHttpRequest();
+    xmlHttp.open( "GET", theUrl, false );
+    xmlHttp.send( null );
+    return xmlHttp.responseText;
+}
+
+function pageLoader(filename, page) {
+    //create text and pdf location based on the defined structure
+    var textLocation = "data/{0}/text/{1}.txt".format(filename, page);
+    var pdfLocation = "data/{0}/pages/{1}.pdf".format(filename, page);
+    var configs = {
+        theme: 'snow'
+    };
+    var editor = new Quill('#editor', configs);
+    editor.addModule('toolbar', { container: '#toolbar' });
+    editor.setHTML(httpGet(textLocation));
+    
+    PDFJS.getDocument(pdfLocation).then(function(pdf) {
+        // Using promise to fetch the page
+        pdf.getPage(1).then(function(page) {
+            var scale = 1;
+            var viewport = page.getViewport(scale);
+            // Prepare canvas using PDF page dimensions
+            var canvas = document.getElementById('the-canvas');
+            var context = canvas.getContext('2d');
+            canvas.height = viewport.height;
+            canvas.width = viewport.width;
+            // Render PDF page into canvas context
+            var renderContext = {
+            canvasContext: context,
+            viewport: viewport
+            };
+            page.render(renderContext);
+        });
+    });    
+}
+
+//load the appropriate page when clicked
+$('#pagelist a').click(function() {
+    var page = this.text.trim();
+    pageLoader(filename, page);    
+});
+
+//if loaded for the first time, load page 1
+pageLoader(filename,1);
+</script>
