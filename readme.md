@@ -14,6 +14,10 @@ var totalPages = 21;
 var fileFoler = "in";
 ```
 
+## Demo
+
+https://cdn.rawgit.com/anjesh/text-pdf-viewer/master/index.html generated using https://rawgit.com/
+
 ## TODOs
 
 * Stylesheet 
